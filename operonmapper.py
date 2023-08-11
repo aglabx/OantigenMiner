@@ -58,7 +58,18 @@ def _read(out_id, out_dir):
     with tarfile.open(fileobj=io.BytesIO(rsp.read())) as targz:
         targz.extractall(out_dir)
 
-    return sorted(os.listdir(f'{out_dir}/{out_id}'))
+    out_folder = f'{out_dir}/{out_id}'
+    files = os.listdir(out_folder)
+
+    for file in files:
+        fullname = out_folder + '/' + file
+        if os.path.isdir(fullname):
+            continue
+        os.rename(fullname, out_dir + '/' + file.rsplit('_', maxsplit=1)[0])
+
+    os.rmdir(out_dir + '/' + out_id)
+
+    return sorted(file for file in os.listdir(out_dir))
 
 
 def _peek(out_id):
@@ -103,6 +114,10 @@ def _prettysleep(n, freq=3):
 
 
 def _do_pooling(args):
+
+    if not args.output:
+        args.output = 'operonmapper_output_' + args.task_id
+
     task_id = args.task_id
     t = 0
     while not _peek(task_id):
@@ -124,8 +139,6 @@ def main():
     import argparse
 
     main_parser = argparse.ArgumentParser()
-    main_parser.add_argument('-o', '--output', default='tmp_operonmapper',
-                             help='output_dir')
 
     subs = main_parser.add_subparsers(required=True)
     parser = subs.add_parser('start')
@@ -135,12 +148,17 @@ def main():
                         help='opperon mapper job name (defaults to fasta file name)')
     parser.add_argument('--email', default=None,
                         help='email to be notified regarding job status')
+    parser.add_argument('-o', '--output', default=None,
+                        help='output directory (defaults to task_id)')
+
 
     parser.set_defaults(func=_find_operons)
 
     continue_parser = subs.add_parser('continue')
     continue_parser.add_argument('task_id', help='task id to continue pooling')
     continue_parser.set_defaults(func=_do_pooling)
+    continue_parser.add_argument('-o', '--output', default=None,
+                                 help='(defaults to task_id)')
 
     args = main_parser.parse_args()
 

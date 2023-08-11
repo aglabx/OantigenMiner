@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 .vscode
 .python-version
-tmp_operonmapper
+operonmapper_output*
 .DS_Store
