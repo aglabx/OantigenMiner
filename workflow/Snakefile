@@ -1,0 +1,46 @@
+
+
+# rule all:
+#     input:
+        
+# rule gene_boundaries:
+#     input:
+#         pass
+#     output:
+#         pass
+#     conda:
+#         "envs/prodigal.yaml"
+#     shell:
+#         pass
+
+# rule annotation:
+#     input:
+#         pass
+#     output:
+#         pass
+#     conda:
+#         "envs/bakta.yaml"
+#     shell:
+#         pass
+
+rule operon_mapping:
+    input:
+        "example/operonmapper.fasta"
+    output:
+        "operonmapper_output/list_of_operons"
+    conda:
+        "envs/operonmapper.yaml"
+    shell:
+        # Here should juggle also between `python operonmapper.py start ...`
+        # Now choosing `continue` for fast testing process
+        "python operonmapper.py continue 3735332 -o operonmapper_output"
+
+# rule operon_filtering:
+#     input:
+#         pass
+#     output:
+#         pass
+#     conda:
+#         "envs/hmm.yaml"
+#     shell:
+#         pass
