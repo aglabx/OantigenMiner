@@ -89,6 +89,9 @@ def _peek(out_id):
     
     if '======== Error code ========' in text:
         raise Exception(f'Operon mapper exception. Visit {url} for details')
+    
+    if 'too many errors' in text:
+        raise Exception(f'Operon mapper exception. Visit {url} for details')
 
     if 'Output files' in text and 'Compressed file with all the above' in text:
         return True

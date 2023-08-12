@@ -62,18 +62,16 @@ rule annotation:
 
 rule operon_mapping:
     input:
-        assembly=assembly,
-        annotation=annotation
+        assembly
     output:
         directory(operonmapper_output)
     conda:
         "envs/operonmapper.yaml"
     shell:
         """
-        pip install -r operonmapper.requirements.txt
-        python operonmapper.py \
-            start {input.assembly} \
-            --gff {input.annotation} \
+        pip install -r {scripts}/operonmapper.requirements.txt
+        python {scripts}/operonmapper.py \
+            start {input} \
             --email yarevan-hackaton@buft.io \
             --reuse \
             -o {output}
