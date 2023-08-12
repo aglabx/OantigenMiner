@@ -43,21 +43,18 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if output_file is None:
-        output_file = os.path.splitext(input_file)[0] + '.tsv'
+        output_file = os.path.splitext(input_file)[0] + '.gff3'
     else:
         output_file = output_file[0]
-        if not output_file.endswith('.tsv'):
-            output_file = output_file + '.tsv'
+        if not output_file.endswith('.gff3'):
+            output_file = output_file + '.gff3'
 
-    # download id names from genomic data
     with open(contigs_file, 'r') as file:
         lines = [line.strip() for line in file]
 
-    # download gffs
     bakta_inp = read_gff(bakta_file)
     operon_mapper_inp = read_gff(antigens_file)[["chromosome", "start", "end", "attributes"]]
 
-    # rename chromosome field in gff originating from bakta
     contig_to_id = dict(zip(bakta_inp.chromosome.unique(), lines))
     bakta_inp["chromosome"] = bakta_inp.chromosome.apply(lambda x: contig_to_id[x]) # rename chromosome field
 
@@ -77,5 +74,4 @@ if __name__ == '__main__':
     merged = merged.drop(["attributes_x", "attributes_y", "attributes_raw"], axis=1)
     merged.loc[merged.attributes.apply(lambda x: "transposase" in x.lower()), 'type'] = "Transposase"
 
-    # write gff file
-    merged.to_csv("output_file.gff3", sep='\t', index=False)
+    merged.to_csv(output_file, sep='\t', index=False)
