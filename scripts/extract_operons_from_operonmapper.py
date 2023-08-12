@@ -18,7 +18,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_operon_coords(one_operon):
+def get_operon_coords(one_operon: pd.DataFrame) -> pd.Series:
     if one_operon['strand'].iloc[0] == '+':
         start = one_operon['start'].min()
         end = one_operon['end'].max()
@@ -32,7 +32,7 @@ def get_operon_coords(one_operon):
                       })
 
 
-def extract_operons(operons_genes):
+def extract_operons(operons_genes: pd.DataFrame) -> pd.DataFrame:
     operons = operons_genes.groupby('operon').apply(get_operon_coords).reset_index()
     operons['left'] = operons[['start', 'end']].min(axis=1)
     operons['right'] = operons[['start', 'end']].max(axis=1)
