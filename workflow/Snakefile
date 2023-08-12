@@ -1,39 +1,61 @@
+from pathlib import Path
 
+data = Path('data')
+results = Path('results')
+
+GENOME = "GCF_000027025.1_ASM2702v1_genomic"
+assembly = data / f"{GENOME}.fna"
+
+prodigal_tf = data / "salmonella_train.trn"
+bakta_db = data / "db-light"
+bakta_output = data / "bakta_output"
+annotation = data / f"{GENOME}.gff"
+operonmapper_output = data / "operonmapper"
 
 # rule all:
 #     input:
         
-# rule gene_boundaries:
-#     input:
-#         pass
-#     output:
-#         pass
-#     conda:
-#         "envs/prodigal.yaml"
-#     shell:
-#         pass
+rule gene_boundaries:
+    input:
+        assembly
+    output:
+        prodigal_tf
+    conda:
+        "envs/prodigal.yaml"
+    shell:
+        "prodigal -i {input} -t {output}"
 
-# rule annotation:
-#     input:
-#         pass
-#     output:
-#         pass
-#     conda:
-#         "envs/bakta.yaml"
-#     shell:
-#         pass
+rule annotation:
+    input:
+        assembly=assembly,
+        bakta_db=bakta_db,
+        prodigal_tf=prodigal_tf
+    output:
+        bakta_output
+    # conda:
+    #     "envs/bakta.yaml"
+    shell:
+        """
+        # ./bakta_loaddb.sh
+        bakta {input.assembly} \
+            --db {bakta_db} \
+            --prodigal-tf {input.prodigal_tf} \
+            --output {output}
+        """
 
 rule operon_mapping:
     input:
-        "example/operonmapper.fasta"
+        assembly=assembly
     output:
-        "operonmapper_output/list_of_operons"
+        operonmapper_output
     conda:
         "envs/operonmapper.yaml"
     shell:
-        # Here should juggle also between `python operonmapper.py start ...`
-        # Now choosing `continue` for fast testing process
-        "python operonmapper.py continue 3735332 -o operonmapper_output"
+        """
+        python operonmapper.py --reuse \
+            start {input.assembly} \
+            -o {output}
+        """
 
 # rule operon_filtering:
 #     input:

@@ -44,7 +44,8 @@ def _submit(fastafile: io.TextIOWrapper,
     r = httpx.post(url=form_action, headers=headers, data=data)
     r.raise_for_status()
 
-    if match := re.search(r'out_(?P<id>\d+)\.html', r.text, re.MULTILINE):
+    match = re.search(r'out_(?P<id>\d+)\.html', r.text, re.MULTILINE)
+    if match:
         return match.groupdict()['id']
 
     raise Exception('Link to results page not found\n' + r.text)
@@ -108,6 +109,7 @@ def _find_operons(args):
     print('Visit', f'{OPERON_MAPPER_URL}/out/out_{args.task_id}.html', 'to manually check status')
 
     reuse_file = join(args.output, REUSE_FILE)
+    os.makedirs(args.output, exist_ok=True)
     with open(reuse_file, 'w') as reusef:
         print(args.task_id, file=reusef)
         print(f'Task id was written to reuse file {reuse_file}')
