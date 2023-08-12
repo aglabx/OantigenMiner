@@ -1,16 +1,23 @@
 import os
+
+
 ## ADD CONFIG
-maxthreads = 5
-hmm_threshold = 0.0001
+maxthreads = 10
+hmm_threshold = 0.0000000000000000001
+kegg_minimal = 3
+seq_id = 'NC_016854.1'
 
 operon_maper_dir = 'operonmapper_output'
 profiles_dir = 'hmms'
 scripts_dir = 'scripts'
 hmm_res_dir = 'hmm_res'
+res_dir = 'oantigenminer_res'
 logs_dir = 'logs'
+
 # define dirs to make
 os.makedirs(hmm_res_dir, exist_ok=True)
 os.makedirs(logs_dir, exist_ok=True)
+os.makedirs(res_dir, exist_ok=True)
 
 
 # rule all:
@@ -40,13 +47,37 @@ rule operon_mapping:
     input:
         "example/operonmapper.fasta"
     output:
-        "operonmapper_output/list_of_operons"
+        "operonmapper_output/list_of_operons",
+        "operonmapper_output/predicted_protein_sequences"
+    params:
+        output_path = 'operonmapper_output'
     conda:
         "envs/operonmapper.yaml"
     shell:
         # Here should juggle also between `python operonmapper.py start ...`
         # Now choosing `continue` for fast testing process
-        "python operonmapper.py continue 3735332 -o operonmapper_output"
+        "python operonmapper.py continue 3735332 -o {params.output_path}"
+
+rule convert_opfindres_to_gff:
+    input:
+        txt = os.path.join(operon_maper_dir, 'list_of_operons')
+    output:
+        gff = os.path.join(operon_maper_dir, 'operons.gff3')
+    conda:
+        'envs/pandas.yml'
+    params:
+        scripts_path = os.path.join(scripts_dir, 'convert_operonmapper_to_gff3.py'),
+        seqid = seq_id
+    threads:
+        1
+    log: stderr = "logs/gff_convert.stderr"
+    shell:
+        """
+        (
+        python3 {params.scripts_path} --input {input.txt} --output {output.gff} --seqid {params.seqid}
+        ) 2> {log.stderr}
+        """
+
 
 rule find_o_antigen_orfs:
     input:
@@ -79,10 +110,33 @@ rule parse_hmm_res:
         decoder_path=os.path.join(profiles_dir, 'keggs.tsv')
     threads:
         1
+    log: stderr="logs/parsehmm.stderr"
     shell:
         """
+        (
         python3 {params.scripts_path} {input.txt} {params.decoder_path} {output.tsv}
+        ) 2> {log.stderr}
         """
+
+rule find_operon:
+    input:
+        tsv = os.path.join(hmm_res_dir, 'o_ant_products.tsv'), \
+        gff = os.path.join(operon_maper_dir,'operons.gff3')
+    output:
+        gff=os.path.join(res_dir,'o_antigen_operons.gff3')
+    params:
+        script_path=os.path.join(scripts_dir,'findtargetoperon.py'),
+        keggs_min=kegg_minimal
+    threads:
+        1
+    conda:
+        'envs/pandas.yml'
+    log: stderr = "logs/find_operons.stderr"
+    shell:
+        """
+        ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        """
+
 
 # rule operon_filtering:
 #     input:
