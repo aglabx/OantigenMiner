@@ -15,7 +15,7 @@ def parse_args():
                         help='Input file (Operon Mapper GGF3-formated output)')
     parser.add_argument('-o', '--output', default=None, nargs=1,
                         help='tab-separated operons data filename')
-    parser.add_argument('-c', '--color', default='lightblue', nargs=?,
+    parser.add_argument('-c', '--color', default='lightblue', nargs='?',
                         help='color to plot operons')
     return parser.parse_args()
 
