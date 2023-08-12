@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 
 def parse_args():
-    parser = argparse.ArgumentParser(usage='gff_fuse.py -i INPUT -o OUTPUT',
+    parser = argparse.ArgumentParser(usage='gff_fuse.py -c CONTIGS -b BAKTA -a ANTIGENS -o OUTPUT',
                                      description='''Fuse GFF annotations from Operon Mapper and Bakta into one file.''')
 
     parser.add_argument('-c', '--contigs', default=None, nargs=1,
