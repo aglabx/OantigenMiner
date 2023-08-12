@@ -56,8 +56,8 @@ rule operon_mapping:
         python operonmapper.py \
             start {input.assembly} \
             --gff {input.annotation} \
-            --email yarevan-hackaton@buft.io
-            --reuse
+            --email yarevan-hackaton@buft.io \
+            --reuse \
             -o {output}
         """
 

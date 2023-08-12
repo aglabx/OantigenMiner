@@ -12,7 +12,7 @@ import tarfile
 from os.path import join
 
 
-OPERON_MAPPER_URL = 'https://biocomputo.ibt.unam.mx/operon_mapper'
+OPERON_MAPPER_URL = 'http://132.248.32.18/operon_mapper'
 REUSE_FILE = '.reuse'
 
 
@@ -82,9 +82,13 @@ def _peek(out_id):
     Checks wether results is ready or not 
     recommended peek time - 1/30sec
     """
-    rsp = httpx.get(f'{OPERON_MAPPER_URL}/out/out_{out_id}.html')
+    url = f'{OPERON_MAPPER_URL}/out/out_{out_id}.html'
+    rsp = httpx.get(url)
     rsp.raise_for_status()
     text = rsp.text
+    
+    if '======== Error code ========' in text:
+        raise Exception(f'Operon mapper exception. Visit {url} for details')
 
     if 'Output files' in text and 'Compressed file with all the above' in text:
         return True
