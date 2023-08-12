@@ -9,17 +9,20 @@ import httpx
 import time
 import tarfile
 
+from os.path import join
+
 
 OPERON_MAPPER_URL = 'https://biocomputo.ibt.unam.mx/operon_mapper'
+REUSE_FILE = '.reuse'
 
 
-def _submit(
-    fastafile: io.TextIOWrapper,
-    gfffile: io.TextIOWrapper = None,
-    description: str = 'An Operon Search',
-    email: str = None
-
-):
+def _submit(fastafile: io.TextIOWrapper,
+            gfffile: io.TextIOWrapper = None,
+            description: str = 'An Operon Search',
+            email: str = None):
+    """
+        Submit task to operon mapper using fasta file and optional gff annotation
+    """
     form_action = f'{OPERON_MAPPER_URL}/capta_forma_01.pl'
 
     data = {
@@ -58,16 +61,17 @@ def _read(out_id, out_dir):
     with tarfile.open(fileobj=io.BytesIO(rsp.read())) as targz:
         targz.extractall(out_dir)
 
-    out_folder = f'{out_dir}/{out_id}'
+    out_folder = join(out_dir, out_id)
     files = os.listdir(out_folder)
 
     for file in files:
-        fullname = out_folder + '/' + file
+        fullname = join(out_folder, file)
         if os.path.isdir(fullname):
             continue
-        os.rename(fullname, out_dir + '/' + file.rsplit('_', maxsplit=1)[0])
+        file_no_id = file.rsplit('_', maxsplit=1)[0]
+        os.rename(fullname, join(out_dir, file_no_id))
 
-    os.rmdir(out_dir + '/' + out_id)
+    os.rmdir(out_folder)
 
     return sorted(file for file in os.listdir(out_dir))
 
@@ -103,6 +107,11 @@ def _find_operons(args):
     print('\tTask id:', args.task_id)
     print('Visit', f'{OPERON_MAPPER_URL}/out/out_{args.task_id}.html', 'to manually check status')
 
+    reuse_file = join(args.output, REUSE_FILE)
+    with open(reuse_file, 'w') as reusef:
+        print(args.task_id, file=reusef)
+        print(f'Task id was written to reuse file {reuse_file}')
+
     return _do_pooling(args)
 
 
@@ -135,12 +144,29 @@ def _do_pooling(args):
         print('\t', args.output + '/' + f)
 
 
+def _should_reuse(args):
+    if not args.reuse:
+        return
+    
+    reuse_file = os.path.join(args.output, '.reuse')
+
+    if not os.path.isfile(reuse_file):
+        print(f'Reuse not availabe: no reuse file found at {reuse_file}.')
+        return
+
+    with open(reuse_file, 'r') as reusef:
+        args.task_id = reusef.read().strip()
+    print(f'Found reuse file "{reuse_file}". Continue pooling with task_id {args.task_id}')
+    args.func = _do_pooling
+
+
 def main():
+    import sys
     import argparse
 
     main_parser = argparse.ArgumentParser()
-
     subs = main_parser.add_subparsers(required=True)
+
     parser = subs.add_parser('start')
     parser.add_argument('fasta', help='path to fasta file')
     parser.add_argument('--gff', help='path to gff file')
@@ -148,10 +174,10 @@ def main():
                         help='opperon mapper job name (defaults to fasta file name)')
     parser.add_argument('--email', default=None,
                         help='email to be notified regarding job status')
-    parser.add_argument('-o', '--output', default=None,
+    parser.add_argument('--reuse', action='store_true',
+                             help='set this flag to reuse previous output')
+    parser.add_argument('-o', '--output', default=None, required=('--reuse' in sys.argv),
                         help='output directory (defaults to task_id)')
-
-
     parser.set_defaults(func=_find_operons)
 
     continue_parser = subs.add_parser('continue')
@@ -161,8 +187,10 @@ def main():
                                  help='(defaults to task_id)')
 
     args = main_parser.parse_args()
+    _should_reuse(args)
 
     return args.func(args)
+
 
 
 if __name__ == '__main__':
