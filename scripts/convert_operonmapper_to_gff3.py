@@ -13,21 +13,22 @@ def parse_args():
                         help='Input file (Operon Mapper result "list_of_operons" file)')
     parser.add_argument('-o', '--output', default=None, nargs=1,
                         help='GFF3 output filename')
-    parser.add_argument('-s', '--seqid',  default=None, nargs='?',
+    parser.add_argument('-s', '--seqid',  default='.', nargs='?',
                         help='seq_id')
 
     return parser.parse_args()
 
 
 def convert_to_gff3(data: pd.DataFrame, seq_id: str) -> pd.DataFrame:
-    data['Operon'] = data['Operon'].fillna(method='ffill')
-    data['Function'] = data['Function'].fillna('.')
-    data = data.dropna(subset=data.columns.difference(['IdGene']))
     data.rename(columns={'PosLeft': 'start',
                                  'postRight': 'end',
                                  'Strand': 'strand',
                                  'Type': 'type',
                                  }, inplace=True)
+
+    data['Operon'] = data['Operon'].fillna(method='ffill')
+    data[['Function', 'COGgene', 'strand', 'IdGene']] = data[['Function', 'COGgene', 'strand', 'IdGene']].fillna('.')
+    data = data.groupby("Operon").apply(lambda group: group.iloc[1:]).reset_index(drop=True)
 
     data['attributes'] = ('operon=' + data['Operon'].astype(int).astype(str).str.strip() + ';' +
                              'coggene=' + data['COGgene'].str.strip(' ').str.strip() + ';' +
