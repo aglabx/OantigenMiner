@@ -21,6 +21,7 @@ assembly = data / f"{GENOME}.fna"
 prodigal_tf = data / "prodigal.trn"
 bakta_db = data / "db-light"
 bakta_output = data / "bakta_output"
+isescan_output = data / "isescan_output"
 annotation = bakta_output / f"{GENOME}.gff3"
 operonmapper_output = data / "operonmapper_output"
 
@@ -160,4 +161,20 @@ rule find_operon:
     shell:
         """
         ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        """
+
+rule find_transposones:
+    input:
+        fna = assembly
+    output:
+        directory(isescan_output)
+    params:
+        output_dir = isescan_output
+    conda:
+        'envs/isescan.yml'
+    threads:
+        maxthreads
+    shell:
+        """
+        isescan.py --seqfile {input.fna} --output {params.output_dir} --nthread {threads}
         """
