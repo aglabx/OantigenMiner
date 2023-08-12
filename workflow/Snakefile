@@ -6,11 +6,11 @@ results = Path('results')
 GENOME = "GCF_000027025.1_ASM2702v1_genomic"
 assembly = data / f"{GENOME}.fna"
 
-prodigal_tf = data / "salmonella_train.trn"
+prodigal_tf = data / "prodigal.trn"
 bakta_db = data / "db-light"
 bakta_output = data / "bakta_output"
-annotation = data / f"{GENOME}.gff"
-operonmapper_output = data / "operonmapper"
+annotation = bakta_output / f"{GENOME}.gff3"
+operonmapper_output = data / "operonmapper_output"
 
 # rule all:
 #     input:
@@ -28,15 +28,14 @@ rule gene_boundaries:
 rule annotation:
     input:
         assembly=assembly,
-        bakta_db=bakta_db,
         prodigal_tf=prodigal_tf
     output:
-        bakta_output
-    # conda:
-    #     "envs/bakta.yaml"
+        directory(bakta_output)
+    conda:
+        "envs/bakta.yaml"
     shell:
         """
-        # ./bakta_loaddb.sh
+        ./bakta_loaddb.sh
         bakta {input.assembly} \
             --db {bakta_db} \
             --prodigal-tf {input.prodigal_tf} \
@@ -45,15 +44,20 @@ rule annotation:
 
 rule operon_mapping:
     input:
-        assembly=assembly
+        assembly=assembly,
+        annotation=annotation
     output:
-        operonmapper_output
+        directory(operonmapper_output)
     conda:
         "envs/operonmapper.yaml"
     shell:
         """
-        python operonmapper.py --reuse \
+        pip install -r operonmapper.requirements.txt
+        python operonmapper.py \
             start {input.assembly} \
+            --gff {input.annotation} \
+            --email yarevan-hackaton@buft.io
+            --reuse
             -o {output}
         """
 
