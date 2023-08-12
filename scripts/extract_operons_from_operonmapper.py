@@ -29,6 +29,7 @@ def get_operon_coords(one_operon: pd.DataFrame) -> pd.Series:
         end = one_operon['start'].min()
 
     return pd.Series({'start': start, 'end': end,
+		      'chr': one_operon['seq_id'].iloc[0],
                       'strand': one_operon['strand'].iloc[0],
                       'N_genes': len(one_operon),
                       })
