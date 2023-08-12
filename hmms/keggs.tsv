@@ -1,0 +1,130 @@
+kegg	num_hom	gene	map
+K00963	8247	UGP2	O-Antigen nucleotide sugar biosynthesis
+K01784	12885	galE	O-Antigen nucleotide sugar biosynthesis
+K17716	52	capD	O-Antigen nucleotide sugar biosynthesis
+K01854	2109	glf	O-Antigen nucleotide sugar biosynthesis
+K00012	7347	UGDH	O-Antigen nucleotide sugar biosynthesis
+K08679	3082	GAE	O-Antigen nucleotide sugar biosynthesis
+K00973	7054	rfbA	O-Antigen nucleotide sugar biosynthesis
+K01710	7621	rfbB	O-Antigen nucleotide sugar biosynthesis
+K01790	6045	rfbC	O-Antigen nucleotide sugar biosynthesis
+K23987	384	rfbCD	O-Antigen nucleotide sugar biosynthesis
+K00067	6250	rfbD	O-Antigen nucleotide sugar biosynthesis
+K02805	1103	wecE	O-Antigen nucleotide sugar biosynthesis
+K16704	686	rffC	O-Antigen nucleotide sugar biosynthesis
+K20429	16	vioA	O-Antigen nucleotide sugar biosynthesis
+K21379	15	vioB	O-Antigen nucleotide sugar biosynthesis
+K00978	1727	rfbF	O-Antigen nucleotide sugar biosynthesis
+K01709	1165	rfbG	O-Antigen nucleotide sugar biosynthesis
+K12452	603	ascC	O-Antigen nucleotide sugar biosynthesis
+K00523	1434	ascD	O-Antigen nucleotide sugar biosynthesis
+K12453	85	rfbS	O-Antigen nucleotide sugar biosynthesis
+K12454	590	rfbE	O-Antigen nucleotide sugar biosynthesis
+K12455	35	rfbJ	O-Antigen nucleotide sugar biosynthesis
+K01809	4993	manA	O-Antigen nucleotide sugar biosynthesis
+K16011	2343	algA	O-Antigen nucleotide sugar biosynthesis
+K01840	5240	manB	O-Antigen nucleotide sugar biosynthesis
+K00971	3271	manC	O-Antigen nucleotide sugar biosynthesis
+K01711	3621	gmd	O-Antigen nucleotide sugar biosynthesis
+K15856	475	rmd	O-Antigen nucleotide sugar biosynthesis
+K22252	377	tld	O-Antigen nucleotide sugar biosynthesis
+K02377	2519	TSTA3	O-Antigen nucleotide sugar biosynthesis
+K13010	1788	per	O-Antigen nucleotide sugar biosynthesis
+K00607	43	wbkC	O-Antigen nucleotide sugar biosynthesis
+K21131	18	colD	O-Antigen nucleotide sugar biosynthesis
+K04042	6562	glmU	O-Antigen nucleotide sugar biosynthesis
+K01791	4523	wecB	O-Antigen nucleotide sugar biosynthesis
+K02472	1690	wecC	O-Antigen nucleotide sugar biosynthesis
+K08068	150	siaA	O-Antigen nucleotide sugar biosynthesis
+K24257	94	neuC	O-Antigen nucleotide sugar biosynthesis
+K01654	435	neuB	O-Antigen nucleotide sugar biosynthesis
+K00983	175	neuA	O-Antigen nucleotide sugar biosynthesis
+K15894	1799	pseB	O-Antigen nucleotide sugar biosynthesis
+K19068	580	wbjC	O-Antigen nucleotide sugar biosynthesis
+K24258	616	wbjD	O-Antigen nucleotide sugar biosynthesis
+K15895	160	pseC	O-Antigen nucleotide sugar biosynthesis
+K15896	200	pseH	O-Antigen nucleotide sugar biosynthesis
+K15897	493	pseG	O-Antigen nucleotide sugar biosynthesis
+K15898	361	pseI	O-Antigen nucleotide sugar biosynthesis
+K15899	528	pseF	O-Antigen nucleotide sugar biosynthesis
+K24282	21	elg3	O-Antigen nucleotide sugar biosynthesis
+K15912	150	pglF	O-Antigen nucleotide sugar biosynthesis
+K24300	1199	wbpM	O-Antigen nucleotide sugar biosynthesis
+K24301	13	lea1	O-Antigen nucleotide sugar biosynthesis
+K24302	11	lea2	O-Antigen nucleotide sugar biosynthesis
+K24304	13	lea5	O-Antigen nucleotide sugar biosynthesis
+K24307	47	lea7	O-Antigen nucleotide sugar biosynthesis
+K24310	423	wbpV	O-Antigen nucleotide sugar biosynthesis
+K24311	33	preQ	O-Antigen nucleotide sugar biosynthesis
+K13015	1453	wbpA	O-Antigen nucleotide sugar biosynthesis
+K02474	1895	wbpO	O-Antigen nucleotide sugar biosynthesis
+K13016	347	wbpB	O-Antigen nucleotide sugar biosynthesis
+K13020	943	wlbA	O-Antigen nucleotide sugar biosynthesis
+K13017	960	wbpE	O-Antigen nucleotide sugar biosynthesis
+K13018	1063	wbpD	O-Antigen nucleotide sugar biosynthesis
+K13019	386	wbpI	O-Antigen nucleotide sugar biosynthesis
+K02473	699	wbpP	O-Antigen nucleotide sugar biosynthesis
+K00677	4656	lpxA	Lipopolysaccharide biosynthesis
+K02535	3965	lpxC	Lipopolysaccharide biosynthesis
+K16363	586	lpxC-fabZ	Lipopolysaccharide biosynthesis
+K02536	4978	lpxD	Lipopolysaccharide biosynthesis
+K03269	3105	lpxH	Lipopolysaccharide biosynthesis
+K09949	1012	lpxI	Lipopolysaccharide biosynthesis
+K00748	4425	lpxB	Lipopolysaccharide biosynthesis
+K00912	4214	lpxK	Lipopolysaccharide biosynthesis
+K06041	4580	kdsD	Lipopolysaccharide biosynthesis
+K01627	4482	kdsA	Lipopolysaccharide biosynthesis
+K03270	3481	kdsC	Lipopolysaccharide biosynthesis
+K00979	4580	kdsB	Lipopolysaccharide biosynthesis
+K02527	4366	kdtA	Lipopolysaccharide biosynthesis
+K02517	5699	lpxL	Lipopolysaccharide biosynthesis
+K02560	894	lpxM	Lipopolysaccharide biosynthesis
+K12979	1000	lpxO	Lipopolysaccharide biosynthesis
+K09953	792	lpxR	Lipopolysaccharide biosynthesis
+K19803	555	lpxT	Lipopolysaccharide biosynthesis
+K03760	1892	eptA	Lipopolysaccharide biosynthesis
+K12975	515	eptB	Lipopolysaccharide biosynthesis
+K12973	666	pagP	Lipopolysaccharide biosynthesis
+K07264	673	arnT	Lipopolysaccharide biosynthesis
+K12976	1155	pagL	Lipopolysaccharide biosynthesis
+K09778	74	lpxJ	Lipopolysaccharide biosynthesis
+K12977	70	lpxE	Lipopolysaccharide biosynthesis
+K23082	67	kdoH1	Lipopolysaccharide biosynthesis
+K23083	69	kdoH2	Lipopolysaccharide biosynthesis
+K23159	74	lpxF	Lipopolysaccharide biosynthesis
+K11211	652	kdkA	Lipopolysaccharide biosynthesis
+K12974	541	lpxP	Lipopolysaccharide biosynthesis
+K03271	3815	gmhA	Lipopolysaccharide biosynthesis
+K03272	2233	gmhC	Lipopolysaccharide biosynthesis
+K21344	878	rfaE1	Lipopolysaccharide biosynthesis
+K03273	3397	gmhB	Lipopolysaccharide biosynthesis
+K21345	934	rfaE2	Lipopolysaccharide biosynthesis
+K03274	2162	gmhD	Lipopolysaccharide biosynthesis
+K07031	572	hddA	Lipopolysaccharide biosynthesis
+K15669	234	hddC	Lipopolysaccharide biosynthesis
+K02841	2006	waaC	Lipopolysaccharide biosynthesis
+K02843	2426	waaF	Lipopolysaccharide biosynthesis
+K02848	477	waaP	Lipopolysaccharide biosynthesis
+K19353	602	eptC	Lipopolysaccharide biosynthesis
+K02849	1306	waaQ	Lipopolysaccharide biosynthesis
+K23160	34	wabB	Lipopolysaccharide biosynthesis
+K19354	389	waaH	Lipopolysaccharide biosynthesis
+K02850	183	waaY	Lipopolysaccharide biosynthesis
+K12981	85	waaZ	Lipopolysaccharide biosynthesis
+K12986	13	waaS	Lipopolysaccharide biosynthesis
+K02844	960	waaG	Lipopolysaccharide biosynthesis
+K02840	193	waaB	Lipopolysaccharide biosynthesis
+K03275	138	waaO	Lipopolysaccharide biosynthesis
+K12983	36	waaV	Lipopolysaccharide biosynthesis
+K03276	103	waaR	Lipopolysaccharide biosynthesis
+K12985	44	waaW	Lipopolysaccharide biosynthesis
+K23067	19	waaX	Lipopolysaccharide biosynthesis
+K03277	22	waaU	Lipopolysaccharide biosynthesis
+K03280	71	waaK	Lipopolysaccharide biosynthesis
+K03278	75	waaI	Lipopolysaccharide biosynthesis
+K03279	270	waaJ	Lipopolysaccharide biosynthesis
+K00713	58	waaD	Lipopolysaccharide biosynthesis
+K02847	1835	waaL	Lipopolysaccharide biosynthesis
+K02851	4467	wecA	O-Antigen repeat unit biosynthesis
+K12993	13	wbdA	O-Antigen repeat unit biosynthesis
+K23189	11	wbuB	O-Antigen repeat unit biosynthesis

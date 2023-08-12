@@ -1,7 +1,19 @@
 from pathlib import Path
+import os
 
 data = Path('data')
+profiles = Path('hmms')
 results = Path('results')
+hmm_results = results / 'hmm'
+scripts = Path('scripts')
+logs = Path('logs')
+
+the_results = results / 'final'
+
+os.makedirs(hmm_results, exist_ok=True)
+os.makedirs(logs, exist_ok=True)
+os.makedirs(the_results, exist_ok=True)
+
 
 GENOME = "GCF_000027025.1_ASM2702v1_genomic"
 assembly = data / f"{GENOME}.fna"
@@ -11,6 +23,12 @@ bakta_db = data / "db-light"
 bakta_output = data / "bakta_output"
 annotation = bakta_output / f"{GENOME}.gff3"
 operonmapper_output = data / "operonmapper_output"
+
+maxthreads = 10
+hmm_threshold = 0.0000000000000000001
+kegg_minimal = 3
+seq_id = 'NC_016854.1' # TODO: READ FROM FNA
+
 
 # rule all:
 #     input:
@@ -61,12 +79,85 @@ rule operon_mapping:
             -o {output}
         """
 
-# rule operon_filtering:
-#     input:
-#         pass
-#     output:
-#         pass
-#     conda:
-#         "envs/hmm.yaml"
-#     shell:
-#         pass
+
+rule convert_opfindres_to_gff:
+    input:
+        txt = operonmapper_output / 'list_of_operons'
+    output:
+        gff = data / 'operons.gff3'
+    conda:
+        'envs/pandas.yml'
+    params:
+        script_path = scripts /'convert_operonmapper_to_gff3.py',
+        seqid = seq_id
+    threads:
+        1
+    log: stderr = "logs/gff_convert.stderr"
+    shell:
+        """
+        (
+        python3 {params.script_path} --input {input.txt} --output {output.gff} --seqid {params.seqid}
+        ) 2> {log.stderr}
+        """
+
+
+rule find_o_antigen_orfs:
+    input:
+        faa = operonmapper_output / 'predicted_protein_sequences'
+    output:
+        txt = hmm_results / 'o_ant_products.txt'
+    params:
+        hmms_path = profiles / 'o_antigen.hmm',
+        hmm_thres = hmm_threshold
+    conda:
+        'envs/hmmer.yml'
+    threads:
+        maxthreads
+    log: 
+        stdout = logs / "hmmsearch.stdout", stderr = logs / "hmmsearch.stderr"
+    shell:
+        """
+        ( hmmsearch --noali --notextw -E {params.hmm_thres} --domE {params.hmm_thres} \
+        --tblout {output} {params.hmms_path} {input.faa}
+        ) > {log.stdout} 2> {log.stderr} 
+        """
+
+
+rule parse_hmm_res:
+    input:
+        txt =  hmm_results / 'o_ant_products.txt',
+    output:
+        tsv = hmm_results / 'o_ant_products.tsv'
+    params:
+        scripts_path = scripts / 'parsehmm.py',
+        decoder_path = profiles / 'keggs.tsv'
+    threads:
+        1
+    log: 
+        stderr = logs / "parsehmm.stderr"
+    shell:
+        """
+        (
+        python3 {params.scripts_path} {input.txt} {params.decoder_path} {output.tsv}
+        ) 2> {log.stderr}
+        """
+
+rule find_operon:
+    input:
+        tsv = hmm_results /  'o_ant_products.tsv',
+        gff = data / 'operons.gff3'
+    output:
+        gff = the_results / 'o_antigen_operons.gff3'
+    params:
+        script_path = scripts / 'findtargetoperon.py',
+        keggs_min = kegg_minimal
+    threads:
+        1
+    conda:
+        'envs/pandas.yml'
+    log: 
+        stderr = logs / "find_operons.stderr"
+    shell:
+        """
+        ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        """
