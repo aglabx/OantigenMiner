@@ -20,7 +20,7 @@ Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <b
 
 ## Overview
 
-O-antigens are glycoprotein components on bacterial cell surfaces. Recently, there has been increasing attention paid to searching and analyzing O-antigens due to their importance in bacterial identification, epidemiological studies, and vaccine development. Here we introduce **WOOF**, an automatic pipeline for searching and visualizing O-antigen operons.
+O-antigens are essential components of lipopolysaccharides exposed on the surface of bacterial cells, and their diversity has increased significantly over time. The identification of O-antigen operons is crucial for comparative genomics, bacterial identification, epidemiological studies, and vaccine development tasks. Here we introduce **WOOF**, an automatic pipeline for searching and visualizing O-antigen operons.
 
  
 ## Installation
