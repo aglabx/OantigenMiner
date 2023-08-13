@@ -22,7 +22,10 @@ Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <b
 
 O-antigens are essential components of lipopolysaccharides exposed on the surface of bacterial cells, and their diversity has increased significantly over time. The identification of O-antigen operons is crucial for comparative genomics, bacterial identification, epidemiological studies, and vaccine development tasks. Here we introduce **WOOF**, an automatic pipeline for searching and visualizing O-antigen operons.
 
- 
+## Dependencies
+
+Snakemake [manual](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
+
 ## Installation
 
 You can get **WOOF** *via* GitHub
