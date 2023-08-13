@@ -8,8 +8,6 @@
 
 <br />
 
-------------------------------------------------------------------------
-
 > **Authors:** <br />
 Oksana Kotovskaia <br />
 Ekaterina Marenina <br />
