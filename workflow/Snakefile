@@ -3,7 +3,7 @@ import os
 
 data = Path('data_2')
 GENOME = "E.coli_genome"
-
+email_ = 'yarevan-hackaton@buft.io'
 
 profiles = Path('hmms')
 results = data / Path('results')
@@ -68,6 +68,8 @@ rule operon_mapping:
         assembly
     output:
         directory(operonmapper_output)
+    params:
+        email = email_
     conda:
         "envs/operonmapper.yaml"
     shell:
@@ -75,7 +77,7 @@ rule operon_mapping:
         pip install -r {scripts}/operonmapper.requirements.txt
         python {scripts}/operonmapper.py \
             start {input} \
-            --email yarevan-hackaton@buft.io \
+            --email {params.email} \
             --reuse \
             -o {output}
         """
@@ -87,7 +89,7 @@ rule convert_opfindres_to_gff:
     output:
         gff = data / 'operons.gff3'
     conda:
-        'envs/pandas.yml'
+        'envs/pythonic.yml'
     params:
         script_path = scripts / 'convert_operonmapper_to_gff3.py',
         seqid = seq_id
@@ -155,7 +157,7 @@ rule find_operon:
     threads:
         1
     conda:
-        'envs/pandas.yml'
+        'envs/pythonic.yml'
     log: 
         stderr = logs / "find_operons.stderr"
     shell:
