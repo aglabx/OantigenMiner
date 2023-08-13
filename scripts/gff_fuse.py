@@ -53,19 +53,24 @@ if __name__ == '__main__':
         lines = [line.strip() for line in file]
 
     bakta_inp = read_gff(bakta_file)
-    operon_mapper_inp = read_gff(antigens_file)[["chromosome", "start", "end", "attributes"]]
+    operon_mapper_inp = read_gff(antigens_file)
 
     contig_to_id = dict(zip(bakta_inp.chromosome.unique(), lines))
     bakta_inp["chromosome"] = bakta_inp.chromosome.apply(lambda x: contig_to_id[x]) # rename chromosome field
 
     # intersect gffs
-    merged = bakta_inp\
+    merged = bakta_inp \
         .merge(operon_mapper_inp, left_on='chromosome', right_on='chromosome')\
         .query('start_x == start_y and end_x == end_y')\
         .drop(["start_y", "end_y"], axis=1)\
         .rename(columns={
             "start_x": "start",
-            "end_x": "end"
+            "end_x": "end",
+            "source_x": "source",
+            "type_x": "type",
+            "score_x": "score",
+            "strand_x": "strand",
+            "phase_x": "phase"
         })
 
     # make attributes
@@ -73,5 +78,8 @@ if __name__ == '__main__':
     merged["attributes"] = merged.attributes_raw + ";" + merged.attributes_y.apply(lambda x: x.split(";")[0])
     merged = merged.drop(["attributes_x", "attributes_y", "attributes_raw"], axis=1)
     merged.loc[merged.attributes.apply(lambda x: "transposase" in x.lower()), 'type'] = "Transposase"
+    merged = merged.drop(["source_y", "type_y", "score_y", "strand_y", "phase_y"], axis=1)
+    transposons = operon_mapper_inp[operon_mapper_inp.type == "insertion_sequence"]
+    output = pd.concat([merged, transposons]).sort_values(by="start")
 
-    merged.to_csv(output_file, sep='\t', index=False, header=False)
+    output.to_csv(output_file, sep='\t', index=False, header=False)
