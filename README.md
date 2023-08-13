@@ -24,7 +24,7 @@ O-antigens are essential components of lipopolysaccharides exposed on the surfac
 
 ## Dependencies
 
-Snakemake <a href="[https://snakemake.readthedocs.io/en/stable/getting_started/installation.html]">manual</a>
+Snakemake [manual](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
 
 ## Installation
 
