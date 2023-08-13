@@ -16,7 +16,7 @@ Nadezhda Pavlova <br />
 Nikita Vaulin <br />
 *Independent researches form Glasgo* <br />
 <br />
-> **Supervisor:** <br />
+**Supervisor:** <br />
 Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <br /> *Applied Genomics Laboratory, SCAMT Institute, ITMO University, 191002 Saint-Petersburg, Russia*
 
 ## Overview
