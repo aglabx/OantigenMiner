@@ -111,7 +111,7 @@ def main():
     parser = argparse.ArgumentParser()
     subs = parser.add_subparsers(required=True)
     
-    splice = subs.add_parser('splice')
+    splice = subs.add_parser('cut')
     splice.add_argument('fasta', help='complete genome')
     splice.add_argument('gff', help='transposon annotation (with insertion_sequence)')
     splice.add_argument('-o', '--output', help='out transposone-free .fna + .fna.restore.csv')
