@@ -4,7 +4,7 @@
 # WOOF 
 
 
-### Wonderful O-anrtigens Operons Finder
+### Wonderful O-antigens Operons Finder
 
 <br />
 
@@ -16,11 +16,11 @@ Nadezhda Pavlova <br />
 Nikita Vaulin <br />
 *Independent researches form Glasgo* <br /><br />
 **Supervisor:** <br />
-Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <br /> *Applied Genomics Laboratory, SCAMT Institute, ITMO University, 191002 Saint-Petersburg, Russia*
+Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <br /> *Applied genomics laboratory, ITMO University, Saint-Petersburg, Russia*
 
 ## Overview
 
-O-antigens are glycoprotein bacterial cell surfaces components. Increasing attention has recently been paid to the search and analysis of O-antigens, as they are important in bacterial identification,epidemiological studies and vaccines development. Here we introduce **WOOF** an automatic pipeline for O-antigens operons search and visualization
+O-antigens are glycoprotein components on bacterial cell surfaces. Recently, there has been increasing attention paid to searching and analyzing O-antigens due to their importance in bacterial identification, epidemiological studies, and vaccine development. Here we introduce **WOOF**, an automatic pipeline for searching and visualizing O-antigen operons.
 
  
 ## Installation
@@ -52,7 +52,8 @@ cd OantigenMiner
 
 ## Troubleshooting
 
-In case of any troubles or issues you can open an issue in the GitHub page of the tool or write to authors directly. 
+In case of any trouble or issues, you can open an issue on the GitHub page of the tool or directly contact the authors.
+
 ## Citation
 
 If you use these tool, please cite as:
