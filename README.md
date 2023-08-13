@@ -45,13 +45,12 @@ Write path to fasta file:
 ```
 data = Path({folder_name})
 GENOME = "{file_prefix}"
-email = 'myemail@yarevan-hackaton.io'
+email = 'myemail@example.com'
 ```
 Run WOOF:
 ```
 snakemake -c {threads} --use-conda
 ```
-
 
 ## Troubleshooting
 
