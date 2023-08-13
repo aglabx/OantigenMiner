@@ -30,6 +30,12 @@ def read_tsv(tsv_path: str) -> set:
     return target_loci_ids
 
 
+def _split_attributes(attrs: str):
+    pairs = attrs.split(';')
+    kvs = (pair.split('=', maxsplit=1) for pair in pairs) 
+    return {k:v for k, v in kvs}
+
+
 def read_gff(gff_path: str):
     """
     reads gff file into pd dataframe
@@ -37,9 +43,9 @@ def read_gff(gff_path: str):
     :return: pd.DataFrame from gff file
     """
     colnames = ['seq_id', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
-    gff_data = pd.read_csv(gff_path, sep='\t', names=colnames)
-    gff_data['attribute_dict'] = gff_data['attributes'].apply(lambda x: {i.split('=')[0]:
-                                                                            i.split('=')[1] for i in x.split(';')})
+    gff_data = pd.read_csv(gff_path, sep='\t', names=colnames, skiprows=1)
+    gff_data['attribute_dict'] = gff_data['attributes'].apply(_split_attributes)
+    
     norm_attribute = pd.json_normalize(gff_data.attribute_dict)
     gff_data = pd.concat([gff_data, norm_attribute], axis=1)
     # remove temp columns:

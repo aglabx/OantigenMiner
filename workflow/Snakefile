@@ -1,9 +1,12 @@
 from pathlib import Path
 import os
 
-data = Path('data')
+data = Path('data_2')
+GENOME = "E.coli_genome"
+
+
 profiles = Path('hmms')
-results = Path('results')
+results = data / Path('results')
 hmm_results = results / 'hmm'
 scripts = Path('scripts')
 logs = Path('logs')
@@ -15,11 +18,10 @@ os.makedirs(logs, exist_ok=True)
 os.makedirs(the_results, exist_ok=True)
 
 
-GENOME = "GCF_000027025.1_ASM2702v1_genomic"
 assembly = data / f"{GENOME}.fna"
 
 prodigal_tf = data / "prodigal.trn"
-bakta_db = data / "db-light"
+bakta_db = "db-light"
 bakta_output = data / "bakta_output"
 annotation = bakta_output / f"{GENOME}.gff3"
 operonmapper_output = data / "operonmapper_output"
@@ -86,7 +88,7 @@ rule convert_opfindres_to_gff:
     conda:
         'envs/pandas.yml'
     params:
-        script_path = scripts /'convert_operonmapper_to_gff3.py',
+        script_path = scripts / 'convert_operonmapper_to_gff3.py',
         seqid = seq_id
     threads:
         1

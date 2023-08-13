@@ -163,6 +163,7 @@ cython_debug/
 operonmapper_output*
 .DS_Store
 .snakemake
-data/
+data*/
 logs/
 results/
+db-light
