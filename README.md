@@ -60,7 +60,7 @@ If you use these tool, please cite as:
 - Kotovskaia O., Ostanin I., Marenina E., Pavlova N., Vaulin N. , Kuchur P., Komissarov A. WOOF: Wonderful O-anrtigens Operons Finder. Природа, 2023, 220, 1--128
 ```bibtex
 @article{phandorin2023,
-  title={WOOF: Wonderful O-anrtigens Operons Finder},
+  title={WOOF: Wonderful O-antigens Operons Finder},
   author={Kotovskaia O., Ostanin I., Marenina E., Pavlova N., Vaulin N. , Kuchur P., Komissarov A.},
   journal={Природа},
   year={2023},
