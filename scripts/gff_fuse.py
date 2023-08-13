@@ -74,4 +74,4 @@ if __name__ == '__main__':
     merged = merged.drop(["attributes_x", "attributes_y", "attributes_raw"], axis=1)
     merged.loc[merged.attributes.apply(lambda x: "transposase" in x.lower()), 'type'] = "Transposase"
 
-    merged.to_csv(output_file, sep='\t', index=False)
+    merged.to_csv(output_file, sep='\t', index=False, header=False)
