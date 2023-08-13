@@ -29,6 +29,7 @@ annotation = bakta_output / f"{GENOME}.gff3"
 proteome = bakta_output / f"{GENOME}.faa"
 operonmapper_output = data / "operonmapper_output"
 transposon_annotation = isescan_output / data / f'{GENOME}.fna.gff'
+operons_reindexed = data / 'operons_reindexed.gff3'
 
 maxthreads = 10
 hmm_threshold = 0.0000000000000000001
@@ -141,6 +142,19 @@ rule reinstall_transposones:
     input:
         fna=no_transposone,
         operons=data / 'operons.gff3',
+        rebuild=no_transposone_rebuild_file,
+        assembly=assembly
+    output:
+        operons_reindexed
+    conda:
+        'envs/pythonic.yml'
+    shell:
+        """
+        python {scripts}/transposon.py rebuild {input.fna} {input.rebuild} \
+            --gff {input.operons} \
+            --validation {input.assembly} \
+            --output {output}
+        """
 
 
 rule find_o_antigen_orfs:
