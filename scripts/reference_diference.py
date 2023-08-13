@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument('-r', '--reference', default=None, nargs=1,
                         help='Reference genome annotation')
     parser.add_argument('-g', '--gff', default=None, nargs=1,
-                        help='Bakta-annotated gff file')
+                        help='GFF with results of O-antigen search (all steps)')
     parser.add_argument('-a', '--antigens', default=None, nargs=1,
 					    help='O-antiigens operons table')
     parser.add_argument('-o', '--output', default=None, nargs=1,

@@ -16,6 +16,7 @@ os.makedirs(the_results, exist_ok=True)
 
 
 GENOME = "GCF_000027025.1_ASM2702v1_genomic"
+reference_gff = 'GCF_000027025.1_ASM2702v1_genomic.gff'  # TODO: MAKE IT OPTIONAL
 assembly = data / f"{GENOME}.fna"
 
 prodigal_tf = data / "prodigal.trn"
@@ -158,4 +159,22 @@ rule find_operon:
     shell:
         """
         ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        """
+
+rule compare_with_reference:
+    input:
+        ref = reference_gff,
+        ant = the_results / 'operons.tsv',
+        gff = the_results / 'operons_annotation.gff'
+    output:
+        the_results / 'reference_difference.tsv'
+    params:
+        script_path = scripts / 'reference_difference.py'
+    log:
+        stderr = logs / "compare_with_reference.stderr"
+    threads:
+        1
+    shell:
+        """
+        ( python3 {params.script_path} -r {input.ref} -g {input.gff} -a {input.ant} -o {output} ) 2> {log.stderr}
         """
