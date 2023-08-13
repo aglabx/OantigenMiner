@@ -8,12 +8,14 @@ email_ = 'yarevan-hackaton@buft.io'
 profiles = Path('hmms')
 results = data / Path('results')
 hmm_results = results / 'hmm'
+blast_results = results / 'blastp'
 scripts = Path('scripts')
 logs = Path('logs')
 
 the_results = results / 'final'
 
 os.makedirs(hmm_results, exist_ok=True)
+os.makedirs(blast_results, exist_ok=True)
 os.makedirs(logs, exist_ok=True)
 os.makedirs(the_results, exist_ok=True)
 
@@ -228,4 +230,81 @@ rule fuse_annotations:
         """
         ( python3 {params.script_path} --contigs {input.c} --bakta {input.b} \
         --antigens {input.a}  --output {output} ) 2> {log.stderr} 
+        """
+
+rule extract_hypos:
+    input:
+        gff = the_results / 'operons_annotation.gff',
+        faa = proteome
+    output:
+        faa = bakta_output / 'hypothetical_proteins.faa'
+    conda:
+        'envs/pythonic.yml'
+    threads:
+        1
+    params:
+        script_path = scripts / 'extract_hypo.py'
+    log:
+        stderr = "logs/extract_hypo.stderr"
+    shell:
+        """
+         ( python3 {params.script_path} {input.gff} {input.faa} {output.faa} ) 2> {log.stderr}
+        """
+
+rule blast_hypos:
+    input:
+        bakta_output / 'hypothetical_proteins.faa'
+    output:
+         blast_results / 'blast_fmt6.txt'
+    conda:
+        'envs/blast.yml'
+    threads:
+        maxthreads
+    log:
+        stdout = logs / "blastp.stdout",
+        stderr = logs / "blastp.stderr"
+    shell:
+        """
+        (blastp -query {input} -db nr -task blastp -remote \
+        -outfmt 6 -out {output} -max_target_seqs 6) > {log.stdout} 2> {log.stderr}
+        """
+
+rule fetch_hypos:
+    input:
+        blast_results / 'blast_fmt6.txt'
+    output:
+        blast_results / 'blast_fetched_names.tsv'
+    conda:
+        'envs/pythonic.yml'
+    log:
+        stderr = logs / "fetch_hypo.stderr"
+    params:
+        email = email_,
+        script_path = scripts / "fetch_hypos_names.py"
+    threads:
+        1
+    shell:
+        """
+        ( python3 {params.script_path} {input} {params.email} {output}
+        ) 2> {log.stderr}
+        """
+
+rule add_hypo_to_gff:
+    input:
+        gff = the_results / 'operons_annotation.gff',
+        tsv = blast_results / 'blast_fetched_names.tsv'
+    output:
+        gff = the_results / 'operons_annotation_with_blast.gff'
+    conda:
+        'envs/pythonic.yml'
+    threads:
+        1
+    params:
+        script_path = scripts / 'hypothetical_proteins_fix.py'
+    log:
+        stderr = logs / "add_hypo.stderr"
+    shell:
+        """
+        ( python3 {params.script_path} -g {input.gff} -h {input.tsv} -o {output}
+        ) 2> {log.stderr}
         """
