@@ -53,12 +53,6 @@ snakemake -c {threads} --use-conda
 ```
 
 
-### Arguments
-
-
-## Uninstallation
-
-
 ## Troubleshooting
 
 If you encounter any issues or have questions, you can open an issue on the GitHub page or directly contact the authors for support.
