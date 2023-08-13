@@ -25,6 +25,7 @@ bakta_db = "db-light"
 bakta_output = data / "bakta_output"
 isescan_output = data / "isescan_output"
 annotation = bakta_output / f"{GENOME}.gff3"
+proteome = bakta_output / f"{GENOME}.faa"
 operonmapper_output = data / "operonmapper_output"
 
 maxthreads = 10
@@ -46,7 +47,7 @@ rule gene_boundaries:
     shell:
         "prodigal -i {input} -t {output}"
 
-rule annotation:
+rule annotate_genomes:
     input:
         assembly=assembly,
         prodigal_tf=prodigal_tf
@@ -95,7 +96,7 @@ rule convert_opfindres_to_gff:
         seqid = seq_id
     threads:
         1
-    log: stderr = "logs/gff_convert.stderr"
+    log: stderr = logs / "gff_convert.stderr"
     shell:
         """
         (
@@ -179,4 +180,52 @@ rule find_transposones:
     shell:
         """
         isescan.py --seqfile {input.fna} --output {params.output_dir} --nthread {threads}
+        """
+rule remove_fa_tail_gff:
+    input:
+        annotation
+    output:
+        bakta_output / 'annotation_wo_fa.gff3'  # OTHER DIR ?
+    log:
+        stderr = logs /'remove_fa_tail.stderr'
+    threads:
+        1
+    shell:
+        """
+        ( awk '{{if($0 ~ /^##FASTA/) exit; print;}}' {input} > {output} ) 2> {log.stderr} 
+        """
+
+rule extract_contig_names:
+    input:
+        assembly
+    output:
+        bakta_output / 'cotig_names.txt'
+    log:
+        stderr = logs / 'extract_contig_names.stderr'
+    threads:
+        1
+    shell:
+        """
+        ( grep '^>' {input} | cut -c 2- | awk '{{print $1}}' > {output} ) 2> {log.stderr} 
+        """
+
+rule fuse_annotations:
+    input:
+        a = the_results / 'o_antigen_operons.gff3',
+        c = bakta_output / 'cotig_names.txt',
+        b = bakta_output / 'annotation_wo_fa.gff3'
+    output:
+        the_results / 'operons_annotation.gff'
+    conda:
+        'envs/pythonic.yml'
+    threads:
+        1
+    log:
+        stderr = "logs/fuse_annotation.stderr"
+    params:
+        script_path = scripts / 'gff_fuse.py'
+    shell:
+        """
+        ( python3 {params.script_path} --contigs {input.c} --bakta {input.b} \
+        --antigens {input.a}  --output {output} ) 2> {log.stderr} 
         """
