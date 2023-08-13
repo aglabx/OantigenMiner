@@ -29,7 +29,13 @@ def remove_transposaes(seq_record: SeqRecord, insertions: pd.DataFrame):
         assert len(transposone_seq) == end - start
         new_delta = delta + len(transposone_seq)
 
-        deletions.append((start - delta, transposone_seq, delta))
+        deletions.append((
+            start - delta, 
+            transposone_seq, 
+            delta,
+            insertion['score'],
+            insertion['strand']
+        ))
 
         delta = new_delta
         pos = end
@@ -79,15 +85,15 @@ def _splice(args):
     for sequence, ds in zip(sequences, dels):
         file = f"{args.output}_{sequence.id}.rebuild.csv"
         with open(file, "w") as out:
-            for idx, seq, delta in ds:
-                print(f"{idx},{seq},{delta}", file=out)
+            for idx, seq, delta, score, strand in ds:
+                print(f"{idx},{seq},{delta},{score},{strand}", file=out)
         print(file)
 
 
 def rebuild(seq: Seq, deletions):
     out = []
     pos = 0
-    for insert_idx, insertion, delta in deletions:
+    for insert_idx, insertion, *_ in deletions:
         prev = seq[pos:insert_idx]
         out.append(prev)
         out.append(insertion)
@@ -109,15 +115,15 @@ def _remap_genes(frm, to, delta, annotation):
     return annotation
     
 
-def mktrns(id, start, end, attribs):
+def mktrns(id, start, end, score, strand, attribs):
     return {
         'seq_id': id,
         'source': 'transposon_cutter',
         'type': 'insertion_sequence',
         'nstart': start,
         'nend': end,
-        'score': None,
-        'strand': None,
+        'score': score,
+        'strand': strand,
         'phase': 0,
         'attributes': attribs,
         'gene_name': f'TRANSP_{str(start).zfill(5)}'
@@ -166,7 +172,7 @@ def reindex_annotation(rec: SeqRecord, buildfile: pd.DataFrame, annotation: pd.D
     pos = 0
     inserts = []
 
-    for _, (insert_idx, insertion, delta) in buildfile.iterrows():
+    for _, (insert_idx, insertion, delta, score, strand) in buildfile.iterrows():
         prev = seq[pos:insert_idx]
         out.append(prev)
         out.append(insertion)
@@ -175,7 +181,14 @@ def reindex_annotation(rec: SeqRecord, buildfile: pd.DataFrame, annotation: pd.D
         basis = insert_idx + delta
 
         inserts.append(
-            mktrns(rec.id, basis, basis + len(insertion), "")
+            mktrns(
+                rec.id, 
+                basis, 
+                basis + len(insertion), 
+                score,
+                strand or '+',
+                ""
+            )
         )
         
         pos = insert_idx
@@ -199,7 +212,8 @@ def reindex_annotation(rec: SeqRecord, buildfile: pd.DataFrame, annotation: pd.D
 
 
 def _rebuild(args):
-    buildfile = pd.read_csv(args.restore, names=['insert_index', 'insertion', 'delta'])
+    buildfile = pd.read_csv(args.restore, 
+                            names=['insert_index', 'insertion', 'delta', 'score', 'strand'])
     sequence = list(SeqIO.parse(args.fasta, 'fasta'))
     assert len(sequence) == 1
     sequence = sequence[0]
