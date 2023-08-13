@@ -1,0 +1,6 @@
+channels:
+ - defaults
+ - conda-forge
+ - bioconda
+dependencies:
+ - blast=2.13.0
