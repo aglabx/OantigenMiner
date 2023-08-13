@@ -14,7 +14,7 @@ Ekaterina Marenina <br />
 Igor Ostanin <br />
 Nadezhda Pavlova <br />
 Nikita Vaulin <br />
-*Independent researches form Glasgo* <br /><br />
+*Independent researchers from Glasgow* <br /><br />
 **Supervisor:** <br />
 Polina Kuchur, [*chesnokova@scamt-itmo.ru*](mailto:chesnokova@scamt-itmo.ru), <br /> *Applied genomics laboratory, ITMO University, Saint-Petersburg, Russia*
 
@@ -52,7 +52,7 @@ cd OantigenMiner
 
 ## Troubleshooting
 
-In case of any trouble or issues, you can open an issue on the GitHub page of the tool or directly contact the authors.
+If you encounter any issues or have questions, you can open an issue on the GitHub page or directly contact the authors for support.
 
 ## Citation
 
