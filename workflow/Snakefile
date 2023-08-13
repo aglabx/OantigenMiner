@@ -3,7 +3,7 @@ import os
 
 data = Path('data_2')
 GENOME = "E.coli_genome"
-email_ = 'yarevan-hackaton@buft.io'
+email = 'yarevan-hackaton@buft.io'
 
 profiles = Path('hmms')
 results = data / Path('results')
@@ -19,6 +19,7 @@ os.makedirs(the_results, exist_ok=True)
 
 
 assembly = data / f"{GENOME}.fna"
+no_transposone = data / f"{GENOME}.no_transposone.fna"
 
 prodigal_tf = data / "prodigal.trn"
 bakta_db = "db-light"
@@ -27,12 +28,17 @@ isescan_output = data / "isescan_output"
 annotation = bakta_output / f"{GENOME}.gff3"
 proteome = bakta_output / f"{GENOME}.faa"
 operonmapper_output = data / "operonmapper_output"
+transposon_annotation = isescan_output / data / f'{GENOME}.fna.gff'
+operons_reindexed = data / 'operons_reindexed.gff3'
 
 maxthreads = 10
 hmm_threshold = 0.0000000000000000001
 kegg_minimal = 3
-seq_id = 'NC_016854.1' # TODO: READ FROM FNA
 
+with open(assembly, 'r') as asf:
+    seq_id = asf.readline()[1:].strip().split()[0]
+
+no_transposone_rebuild_file = f'{no_transposone}_{seq_id}.rebuild.csv'
 
 # rule all:
 #     input:
@@ -64,13 +70,40 @@ rule annotate_genomes:
             --output {output}
         """
 
+rule find_transposones:
+    input:
+        fna = assembly
+    output:
+        directory(isescan_output)
+    conda:
+        'envs/isescan.yml'
+    threads:
+        maxthreads
+    shell:
+        """
+        isescan.py --seqfile {input.fna} --output {output} --nthread {threads}
+        """
+
+rule cut_transposones:
+    input:
+        assembly=assembly,
+        transposon_annotation=transposon_annotation
+    output:
+        nt=no_transposone,
+        nt_rebuild=no_transposone_rebuild_file
+    conda:
+        'envs/pythonic.yml'
+    shell:
+        "python {scripts}/transposon.py cut {input.assembly} {input.transposon_annotation} -o {output.nt}"
+
+
 rule operon_mapping:
     input:
-        assembly
+        no_transposone
     output:
         directory(operonmapper_output)
     params:
-        email = email_
+        email=email
     conda:
         "envs/operonmapper.yaml"
     shell:
@@ -102,6 +135,25 @@ rule convert_opfindres_to_gff:
         (
         python3 {params.script_path} --input {input.txt} --output {output.gff} --seqid {params.seqid}
         ) 2> {log.stderr}
+        """
+
+
+rule reinstall_transposones:
+    input:
+        fna=no_transposone,
+        operons=data / 'operons.gff3',
+        rebuild=no_transposone_rebuild_file,
+        assembly=assembly
+    output:
+        operons_reindexed
+    conda:
+        'envs/pythonic.yml'
+    shell:
+        """
+        python {scripts}/transposon.py rebuild {input.fna} {input.rebuild} \
+            --gff {input.operons} \
+            --validation {input.assembly} \
+            --output {output}
         """
 
 
@@ -166,21 +218,7 @@ rule find_operon:
         ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
         """
 
-rule find_transposones:
-    input:
-        fna = assembly
-    output:
-        directory(isescan_output)
-    params:
-        output_dir = isescan_output
-    conda:
-        'envs/isescan.yml'
-    threads:
-        maxthreads
-    shell:
-        """
-        isescan.py --seqfile {input.fna} --output {params.output_dir} --nthread {threads}
-        """
+
 rule remove_fa_tail_gff:
     input:
         annotation
