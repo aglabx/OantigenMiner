@@ -1,5 +1,4 @@
 #!/bin/bash
-cd data
 
 if [ -d "db-light" ]; then
     echo "Database exists. Skip download."

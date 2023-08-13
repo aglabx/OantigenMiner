@@ -12,7 +12,7 @@ import tarfile
 from os.path import join
 
 
-OPERON_MAPPER_URL = 'http://132.248.32.18/operon_mapper'
+OPERON_MAPPER_URL = 'https://biocomputo.ibt.unam.mx/operon_mapper'
 REUSE_FILE = '.reuse'
 
 

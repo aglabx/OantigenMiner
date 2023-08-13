@@ -1,9 +1,12 @@
 from pathlib import Path
 import os
 
-data = Path('data')
+data = Path('data_2')
+GENOME = "E.coli_genome"
+email_ = 'yarevan-hackaton@buft.io'
+
 profiles = Path('hmms')
-results = Path('results')
+results = data / Path('results')
 hmm_results = results / 'hmm'
 scripts = Path('scripts')
 logs = Path('logs')
@@ -15,14 +18,16 @@ os.makedirs(logs, exist_ok=True)
 os.makedirs(the_results, exist_ok=True)
 
 
-GENOME = "GCF_000027025.1_ASM2702v1_genomic"
-reference_gff = 'GCF_000027025.1_ASM2702v1_genomic.gff'  # TODO: MAKE IT OPTIONAL
+
 assembly = data / f"{GENOME}.fna"
+reference_gff =  data / f'{GENOME}.gff'  # TODO: MAKE IT OPTIONAL
 
 prodigal_tf = data / "prodigal.trn"
-bakta_db = data / "db-light"
+bakta_db = "db-light"
 bakta_output = data / "bakta_output"
+isescan_output = data / "isescan_output"
 annotation = bakta_output / f"{GENOME}.gff3"
+proteome = bakta_output / f"{GENOME}.faa"
 operonmapper_output = data / "operonmapper_output"
 
 maxthreads = 10
@@ -44,7 +49,7 @@ rule gene_boundaries:
     shell:
         "prodigal -i {input} -t {output}"
 
-rule annotation:
+rule annotate_genomes:
     input:
         assembly=assembly,
         prodigal_tf=prodigal_tf
@@ -66,6 +71,8 @@ rule operon_mapping:
         assembly
     output:
         directory(operonmapper_output)
+    params:
+        email = email_
     conda:
         "envs/operonmapper.yaml"
     shell:
@@ -73,7 +80,7 @@ rule operon_mapping:
         pip install -r {scripts}/operonmapper.requirements.txt
         python {scripts}/operonmapper.py \
             start {input} \
-            --email yarevan-hackaton@buft.io \
+            --email {params.email} \
             --reuse \
             -o {output}
         """
@@ -85,13 +92,13 @@ rule convert_opfindres_to_gff:
     output:
         gff = data / 'operons.gff3'
     conda:
-        'envs/pandas.yml'
+        'envs/pythonic.yml'
     params:
-        script_path = scripts /'convert_operonmapper_to_gff3.py',
+        script_path = scripts / 'convert_operonmapper_to_gff3.py',
         seqid = seq_id
     threads:
         1
-    log: stderr = "logs/gff_convert.stderr"
+    log: stderr = logs / "gff_convert.stderr"
     shell:
         """
         (
@@ -153,12 +160,77 @@ rule find_operon:
     threads:
         1
     conda:
-        'envs/pandas.yml'
+        'envs/pythonic.yml'
     log: 
         stderr = logs / "find_operons.stderr"
     shell:
         """
         ( python3 {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        """
+
+rule find_transposones:
+    input:
+        fna = assembly
+    output:
+        directory(isescan_output)
+    params:
+        output_dir = isescan_output
+    conda:
+        'envs/isescan.yml'
+    threads:
+        maxthreads
+    shell:
+        """
+        isescan.py --seqfile {input.fna} --output {params.output_dir} --nthread {threads}
+        """
+
+rule remove_fa_tail_gff:
+    input:
+        annotation
+    output:
+        bakta_output / 'annotation_wo_fa.gff3'  # OTHER DIR ?
+    log:
+        stderr = logs /'remove_fa_tail.stderr'
+    threads:
+        1
+    shell:
+        """
+        ( awk '{{if($0 ~ /^##FASTA/) exit; print;}}' {input} > {output} ) 2> {log.stderr} 
+        """
+
+rule extract_contig_names:
+    input:
+        assembly
+    output:
+        bakta_output / 'cotig_names.txt'
+    log:
+        stderr = logs / 'extract_contig_names.stderr'
+    threads: 
+        1
+    shell:
+        """
+        ( grep '^>' {input} | cut -c 2- | awk '{{print $1}}' > {output} ) 2> {log.stderr} 
+        """
+
+rule fuse_annotations:
+    input:
+        a = the_results / 'o_antigen_operons.gff3',
+        c = bakta_output / 'cotig_names.txt',
+        b = bakta_output / 'annotation_wo_fa.gff3'
+    output:
+        the_results / 'operons_annotation.gff'
+    conda:
+        'envs/pythonic.yml'
+    threads:
+        1
+    log:
+        stderr = "logs/fuse_annotation.stderr"
+    params:
+        script_path = scripts / 'gff_fuse.py'
+    shell:
+        """
+        ( python3 {params.script_path} --contigs {input.c} --bakta {input.b} \
+        --antigens {input.a}  --output {output} ) 2> {log.stderr} 
         """
 
 rule compare_with_reference:
@@ -177,4 +249,4 @@ rule compare_with_reference:
     shell:
         """
         ( python3 {params.script_path} -r {input.ref} -g {input.gff} -a {input.ant} -o {output} ) 2> {log.stderr}
-        """
+        """  

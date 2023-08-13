@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+dependencies:
+  - pandas=2.0.3
+  - biopython=1.81
+  - genomenotebook=0.3.2
