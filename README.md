@@ -37,11 +37,20 @@ Then move to the repository directory:
 cd OantigenMiner
 ```
 
-
 ## Usage
 
 ### Example usage
 
+Write path to fasta file:
+```
+data = Path({folder_name})
+GENOME = "{file_prefix}"
+email = 'myemail@yarevan-hackaton.io'
+```
+Run WOOF:
+```
+snakemake -c {threads} --use-conda
+```
 
 
 ### Arguments
