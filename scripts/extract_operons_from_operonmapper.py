@@ -25,8 +25,8 @@ def get_operon_coords(one_operon: pd.DataFrame) -> pd.Series:
         start = one_operon['start'].min()
         end = one_operon['end'].max()
     else:
-        start = one_operon['end'].max()
-        end = one_operon['start'].min()
+        start = one_operon['start'].max()
+        end = one_operon['end'].min()
 
     return pd.Series({'start': start, 'end': end,
                       'strand': one_operon['strand'].iloc[0],
