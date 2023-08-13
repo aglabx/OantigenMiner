@@ -20,7 +20,9 @@ os.makedirs(logs, exist_ok=True)
 os.makedirs(the_results, exist_ok=True)
 
 
+
 assembly = data / f"{GENOME}.fna"
+reference_gff =  data / f'{GENOME}.gff'  # TODO: MAKE IT OPTIONAL
 no_transposone = data / f"{GENOME}.no_transposone.fna"
 
 prodigal_tf = data / "prodigal.trn"
@@ -242,7 +244,7 @@ rule extract_contig_names:
         bakta_output / 'cotig_names.txt'
     log:
         stderr = logs / 'extract_contig_names.stderr'
-    threads:
+    threads: 
         1
     shell:
         """
@@ -270,6 +272,28 @@ rule fuse_annotations:
         --antigens {input.a}  --output {output} ) 2> {log.stderr} 
         """
 
+
+rule compare_with_reference:
+    input:
+        ref = reference_gff,
+        ant = the_results / 'operons.tsv',
+        gff = the_results / 'operons_annotation.gff'
+    output:
+        the_results / 'reference_difference.tsv'
+    params:
+        script_path = scripts / 'reference_difference.py'
+    log:
+        stderr = logs / "
+        
+        .stderr"
+    threads:
+        1
+    shell:
+        """
+        ( python3 {params.script_path} -r {input.ref} -g {input.gff} -a {input.ant} -o {output} ) 2> {log.stderr}
+        """  
+
+        
 rule extract_hypos:
     input:
         gff = the_results / 'operons_annotation.gff',
