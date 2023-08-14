@@ -33,7 +33,8 @@ isescan_output = data / "isescan_output"
 annotation = bakta_output / f"{GENOME}.gff3"
 proteome = bakta_output / f"{GENOME}.faa"
 operonmapper_output = data / "operonmapper_output"
-transposon_annotation = isescan_output / data / f'{GENOME}.fna.gff'
+data_rel = data.relative_to('/') if data.is_absolute() else data
+transposon_annotation = isescan_output / data_rel / f'{GENOME}.fna.gff'
 operons_reindexed = data / 'operons_reindexed.gff3'
 
 maxthreads = 10
