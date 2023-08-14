@@ -45,10 +45,14 @@ cd OantigenMiner
 ### Example usage
 
 Write path to fasta file:
+
+- Create output directory folder_name
+- Put your `.fna` file inside
+- Change `workflow/Snakefile`` accordingly
 ```
-data = Path({folder_name})
+data = Path(folder_name)
 GENOME = "{file_prefix}"
-email = 'myemail@example.com'
+email = 'notify@example.com'
 ```
 Run WOOF:
 ```
