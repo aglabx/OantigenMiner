@@ -212,21 +212,26 @@ def reindex_annotation(rec: SeqRecord, buildfile: pd.DataFrame, annotation: pd.D
 
 
 def _rebuild(args):
-    buildfile = pd.read_csv(args.restore, 
-                            names=['insert_index', 'insertion', 'delta', 'score', 'strand'])
-    sequence = list(SeqIO.parse(args.fasta, 'fasta'))
-    assert len(sequence) == 1
-    sequence = sequence[0]
-    
-    operons = read_gff(args.gff)
-    
-    sq, reindexed = reindex_annotation(sequence, buildfile, operons)
-    
-    orig = list(SeqIO.parse(args.validation, 'fasta'))[0].seq
-    assert sq == orig
-    print('Rebuild successful!')
-    
-    write_gff(reindexed, args.output)
+    reindexed_operons_all = None
+    sequences = list(SeqIO.parse(args.fasta, 'fasta'))
+    for i, sequence in enumerate(sequences):
+        buildfile_path = f"{args.restore.split('.')[0]}.no_transposone.fna_{sequence.id}.rebuild.csv"
+        buildfile = pd.read_csv(buildfile_path,
+                                names=['insert_index', 'insertion', 'delta', 'score', 'strand'])
+        operons = read_gff(args.gff)
+        operons = operons[operons['seq_id'] == sequence.id]
+        if reindexed_operons_all is None:
+            reindexed_operons_all = pd.DataFrame(columns=operons.columns)
+        if len(buildfile) != 0:
+            sq, reindexed_one_seq = reindex_annotation(sequence, buildfile, operons)
+            orig = list(SeqIO.parse(args.validation, 'fasta'))[i].seq
+            assert sq == orig
+            reindexed_operons_all = pd.concat([reindexed_operons_all, reindexed_one_seq])
+        else:
+            reindexed_operons_all = pd.concat([reindexed_operons_all, operons])
+        print(f'Rebuild successful for {sequence.id}!')
+
+    write_gff(reindexed_operons_all, args.output)
 
 
 def main():
