@@ -1,9 +1,9 @@
 from pathlib import Path
 import os
 
-data = Path('data_2')
-GENOME = "E.coli_genome"
-email = 'yarevan-hackaton@buft.io'
+data = Path('ecor50')
+GENOME = "ecor50"
+email = 'example@email.com'
 
 profiles = Path('hmms')
 results = data / Path('results')
@@ -136,21 +136,21 @@ rule operon_mapping:
 
 rule convert_opfindres_to_gff:
     input:
-        txt = operonmapper_output / 'list_of_operons'
+        txt = operonmapper_output / 'list_of_operons',
+        seq_ids = operonmapper_output / 'ORFs_coordinates'
     output:
         gff = data / 'operons.gff3'
     conda:
         'envs/pythonic.yml'
     params:
-        script_path = scripts / 'convert_operonmapper_to_gff3.py',
-        seqid = seq_id
+        script_path = scripts / 'convert_operonmapper_to_gff3.py'
     threads:
         1
     log: stderr = logs / "gff_convert.stderr"
     shell:
         """
         (
-        python {params.script_path} --input {input.txt} --output {output.gff} --seqid {params.seqid}
+        python {params.script_path} --input {input.txt} --output {output.gff} --seqidpath {input.seq_ids}
         ) 2> {log.stderr}
         """
 
