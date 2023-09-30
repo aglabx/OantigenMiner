@@ -1,99 +1,89 @@
 from pathlib import Path
 import os
 
-data = Path('data_2')
-GENOME = "E.coli_genome"
-email = 'yarevan-hackaton@buft.io'
+configfile: 'example_config.yaml'
 
-profiles = Path('hmms')
-results = data / Path('results')
-hmm_results = results / 'hmm'
-blast_results = results / 'blastp'
-scripts = Path('scripts')
-logs = Path('logs')
+email = config['email']
+input_assembly = config['genome']
+output_dir = Path(config['output'])
+results = output_dir / Path(config['results_dir'])
 
-the_results = results / 'final'
+scripts = Path(config['scripts'])
+envs = Path(config['envs'])
+logs = Path(config['logs'])
+profiles = Path(config['hmms'])
+
+operonmapper_output = output_dir / config["operonmapper_output"]
+bakta_output = output_dir / config["bakta_output"]
+isescan_output = output_dir / config["isescan_output"]
+hmm_results = output_dir / config['hmmer_output']
+blast_results = output_dir / config['blastp_output']
 
 os.makedirs(hmm_results, exist_ok=True)
 os.makedirs(blast_results, exist_ok=True)
 os.makedirs(logs, exist_ok=True)
-os.makedirs(the_results, exist_ok=True)
-os.makedirs(the_results / 'images', exist_ok=True)
+os.makedirs(results, exist_ok=True)
+os.makedirs(results / 'images', exist_ok=True)
 
+input_prefix = '.'.join(os.path.basename(config['genome']).split('.')[:-1])
+input_dir =  os.path.basename(os.path.dirname(input_assembly))
+reference_gff = output_dir / f'{input_prefix}.gff'  # TODO: MAKE IT OPTIONAL
+no_transposone_assembly = output_dir / f"{input_prefix}.no_transposone.fna"
 
-
-assembly = data / f"{GENOME}.fna"
-reference_gff =  data / f'{GENOME}.gff'  # TODO: MAKE IT OPTIONAL
-no_transposone = data / f"{GENOME}.no_transposone.fna"
-
-prodigal_tf = data / "prodigal.trn"
-bakta_db = "db-light"
-bakta_output = data / "bakta_output"
-isescan_output = data / "isescan_output"
-annotation = bakta_output / f"{GENOME}.gff3"
-proteome = bakta_output / f"{GENOME}.faa"
-operonmapper_output = data / "operonmapper_output"
-transposon_annotation = isescan_output / data / f'{GENOME}.fna.gff'
-operons_reindexed = data / 'operons_reindexed.gff3'
-
-maxthreads = 10
-hmm_threshold = 0.0000000000000000001
-kegg_minimal = 3
-
-
-with open(assembly, 'r') as asf:
+with open(input_assembly,'r') as asf:
     seq_id = asf.readline()[1:].strip().split()[0]
 
-no_transposone_rebuild_file = f'{no_transposone}_{seq_id}.rebuild.csv'
+no_transposone_rebuild_file = f'{no_transposone_assembly}_{seq_id}.rebuild.csv'
 
 rule all:
     input:
-        the_results / 'operons_annotation.gff3',
-        expand(the_results / 'images/{file}', file=os.listdir(the_results / 'images')),
-        the_results / 'images' / 'finished.txt'
-        # the_results / 'operons_annotation_with_blast.gff'
+        results / 'operons_annotation.gff3',
+        results / 'images' / 'finished.txt',
+        # expand(results / 'images/{file}', file=os.listdir(results / 'images')),
+        # results / 'operons_annotation_with_blast.gff'
         
 rule gene_boundaries:
     input:
-        assembly
+        input_assembly
     output:
-        prodigal_tf
+        output_dir / "prodigal.trn"
     conda:
-        "envs/prodigal.yaml"
+        envs /"prodigal.yaml"
     shell:
         "prodigal -i {input} -t {output}"
 
 rule annotate_genomes:
     input:
-        assembly=assembly,
-        prodigal_tf=prodigal_tf
+        assembly=input_assembly,
+        prodigal_tf = output_dir / "prodigal.trn"
     output:
-        bakta_output / f'{GENOME}.gff3'
+        bakta_output / f'{input_prefix}.gff3'
     params:
-        out=bakta_output
+        out=bakta_output,
+        db=config['bakta_db']
     conda:
-        "envs/bakta.yaml"
+        envs / "bakta.yaml"
     shell:
         """
         ./bakta_loaddb.sh
         bakta {input.assembly} \
             --force \
-            --db {bakta_db} \
+            --db {params.db} \
             --prodigal-tf {input.prodigal_tf} \
             --output {params.out}
         """
 
 rule find_transposones:
     input:
-        fna = assembly
+        fna = input_assembly
     output:
-        isescan_output / '{assembly}.gff'
+        isescan_output / input_dir / f'{input_prefix}.fna.gff'
     params:
         out=isescan_output
     conda:
-        'envs/isescan.yml'
+        envs / 'isescan.yml'
     threads:
-        maxthreads
+        config['maxthreads']
     shell:
         """
         isescan.py --seqfile {input.fna} --output {params.out} --nthread {threads}
@@ -101,20 +91,20 @@ rule find_transposones:
 
 rule cut_transposones:
     input:
-        assembly=assembly,
-        transposon_annotation=transposon_annotation
+        assembly=input_assembly,
+        transposon_annotation = isescan_output / input_dir / f'{input_prefix}.fna.gff'
     output:
-        nt=no_transposone,
+        nt=no_transposone_assembly,
         nt_rebuild=no_transposone_rebuild_file
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     shell:
         "python {scripts}/transposon.py cut {input.assembly} {input.transposon_annotation} -o {output.nt}"
 
 
 rule operon_mapping:
     input:
-        no_transposone
+        no_transposone_assembly
     output:
         pps = operonmapper_output / 'predicted_protein_sequences',
         loo = operonmapper_output / 'list_of_operons'
@@ -122,7 +112,7 @@ rule operon_mapping:
         out=operonmapper_output,
         email=email
     conda:
-        "envs/operonmapper.yaml"
+        envs / "operonmapper.yaml"
     shell:
         """
         pip install -r {scripts}/operonmapper.requirements.txt
@@ -138,11 +128,11 @@ rule convert_opfindres_to_gff:
     input:
         txt = operonmapper_output / 'list_of_operons'
     output:
-        gff = data / 'operons.gff3'
+        gff =output_dir / 'operons.gff3'
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     params:
-        script_path = scripts / 'convert_operonmapper_to_gff3.py',
+        script = scripts / 'convert_operonmapper_to_gff3.py',
         seqid = seq_id
     threads:
         1
@@ -150,21 +140,21 @@ rule convert_opfindres_to_gff:
     shell:
         """
         (
-        python {params.script_path} --input {input.txt} --output {output.gff} --seqid {params.seqid}
+        python {params.script} --input {input.txt} --output {output.gff} --seqid {params.seqid}
         ) 2> {log.stderr}
         """
 
 
 rule reinstall_transposones:
     input:
-        fna=no_transposone,
-        operons=data / 'operons.gff3',
+        fna=no_transposone_assembly,
+        operons=output_dir / 'operons.gff3',
         rebuild=no_transposone_rebuild_file,
-        assembly=assembly
+        assembly=input_assembly
     output:
-        operons_reindexed
+        output_dir / 'operons_reindexed.gff3'
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     shell:
         """
         python {scripts}/transposon.py rebuild {input.fna} {input.rebuild} \
@@ -181,11 +171,11 @@ rule find_o_antigen_orfs:
         txt = hmm_results / 'o_ant_products.txt'
     params:
         hmms_path = profiles / 'o_antigen.hmm',
-        hmm_thres = hmm_threshold
+        hmm_thres = config['hmm_threshold']
     conda:
-        'envs/hmmer.yml'
+        envs / 'hmmer.yml'
     threads:
-        maxthreads
+        config['maxthreads']
     log: 
         stdout = logs / "hmmsearch.stdout", stderr = logs / "hmmsearch.stderr"
     shell:
@@ -198,11 +188,11 @@ rule find_o_antigen_orfs:
 
 rule parse_hmm_res:
     input:
-        txt =  hmm_results / 'o_ant_products.txt',
+        txt = hmm_results / 'o_ant_products.txt',
     output:
         tsv = hmm_results / 'o_ant_products.tsv'
     params:
-        scripts_path = scripts / 'parsehmm.py',
+        script = scripts / 'parsehmm.py',
         decoder_path = profiles / 'keggs.tsv'
     threads:
         1
@@ -211,48 +201,50 @@ rule parse_hmm_res:
     shell:
         """
         (
-        python {params.scripts_path} {input.txt} {params.decoder_path} {output.tsv}
+        python {params.script} {input.txt} {params.decoder_path} {output.tsv}
         ) 2> {log.stderr}
         """
 
 rule find_operon:
     input:
         tsv = hmm_results /  'o_ant_products.tsv',
-        gff = operons_reindexed
+        gff = output_dir / 'operons_reindexed.gff3'
     output:
-        gff = the_results / 'o_antigen_operons.gff3'
+        gff = results / 'o_antigen_operons.gff3'
     params:
-        script_path = scripts / 'findtargetoperon.py',
-        keggs_min = kegg_minimal
+        script = scripts / 'findtargetoperon.py',
+        keggs_min = config['kegg_minimal']
     threads:
         1
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     log: 
         stderr = logs / "find_operons.stderr"
     shell:
         """
-        ( python {params.script_path} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
+        ( python {params.script} {input.gff} {input.tsv} {output.gff} {params.keggs_min}) 2> {log.stderr} 
         """
 
 
 rule extract_operons:
     input:
-        gff = the_results / 'o_antigen_operons.gff3'
+        gff = results / 'o_antigen_operons.gff3'
     output:
-        the_results / 'operons.tsv'
+        results / 'operons.tsv'
     conda:
-        "envs/pythonic.yml"
+        envs / "pythonic.yml"
+    params:
+        script = scripts / 'extract_operons_from_operonmapper.py'
     shell:
         """
         pip install genomenotebook > /dev/null
-        python {scripts}/extract_operons_from_operonmapper.py -i {input.gff} -o {output}
+        python {params.script} -i {input.gff} -o {output}
         """
 
 
 rule remove_fa_tail_gff:
     input:
-        annotation
+        bakta_output / f"{input_prefix}.gff3"
     output:
         bakta_output / 'annotation_wo_fa.gff3'  # OTHER DIR ?
     log:
@@ -267,9 +259,9 @@ rule remove_fa_tail_gff:
 
 rule extract_contig_names:
     input:
-        assembly
+        input_assembly
     output:
-        bakta_output / 'cotig_names.txt'
+        bakta_output / 'contig_names.txt'
     log:
         stderr = logs / 'extract_contig_names.stderr'
     threads: 
@@ -281,17 +273,17 @@ rule extract_contig_names:
 
 rule fuse_annotations:
     input:
-        a = the_results / 'o_antigen_operons.gff3',
-        c = bakta_output / 'cotig_names.txt',
+        a = results / 'o_antigen_operons.gff3',
+        c = bakta_output / 'contig_names.txt',
         b = bakta_output / 'annotation_wo_fa.gff3'
     output:
-        the_results / 'operons_annotation.gff3'
+        results / 'operons_annotation.gff3'
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     threads:
         1
     log:
-        stderr = "logs/fuse_annotation.stderr"
+        stderr = logs / "fuse_annotation.stderr"
     params:
         script_path = scripts / 'gff_fuse.py'
     shell:
@@ -304,55 +296,56 @@ rule fuse_annotations:
 rule compare_with_reference:
     input:
         ref = reference_gff,
-        ant = the_results / 'operons.tsv',
-        gff = the_results / 'operons_annotation.gff3'
+        ant = results / 'operons.tsv',
+        gff = results / 'operons_annotation.gff3'
     output:
-        the_results / 'reference_difference.tsv'
+        results / 'reference_difference.tsv'
     params:
-        script_path = scripts / 'reference_difference.py'
+        script =scripts / 'reference_difference.py'
     log:
         stderr = logs / "reference-difference.stderr"
     threads:
         1
     shell:
         """
-        ( python {params.script_path} -r {input.ref} -g {input.gff} -a {input.ant} -o {output} ) 2> {log.stderr}
+        ( python {params.script} -r {input.ref} -g {input.gff} -a {input.ant} -o {output} ) 2> {log.stderr}
         """  
 
         
 rule extract_hypos:
     input:
-        gff = the_results / 'operons_annotation.gff3',
-        faa = proteome
+        gff = results / 'operons_annotation.gff3',
+        faa = bakta_output / f"{input_prefix}.faa"
     output:
         faa = bakta_output / 'hypothetical_proteins.faa'
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     threads:
         1
     params:
-        script_path = scripts / 'extract_hypo.py'
+        script =scripts / 'extract_hypo.py'
     log:
         stderr = "logs/extract_hypo.stderr"
     shell:
         """
-         ( python {params.script_path} {input.gff} {input.faa} {output.faa} ) 2> {log.stderr}
+         ( python {params.script} {input.gff} {input.faa} {output.faa} ) 2> {log.stderr}
         """
 
 rule plot_operons:
     input:
-        gff = the_results / 'operons_annotation.gff3',
-        antigenes = the_results / 'operons.tsv'
+        gff = results / 'operons_annotation.gff3',
+        antigenes = results / 'operons.tsv'
     output:
-        the_results / 'images' / 'finished.txt'
+        results / 'images' / 'finished.txt'
     params:
-        out = the_results / 'images'
+        out = results / 'images',
+        script = scripts / 'plot_operons.py'
     conda:
-        'envs/pythonic.yml'
+        envs / 'pythonic.yml'
     shell:
         '''
         pip install genomenotebook > /dev/null
-        python {scripts}/plot_operons.py -g {input.gff} -a {input.antigenes} -o {params.out}
+        python {params.script} -g {input.gff} -a {input.antigenes} -o {params.out}
         '''
 
 # rule blast_hypos:
@@ -361,7 +354,7 @@ rule plot_operons:
 #     output:
 #          blast_results / 'blast_fmt6.txt'
 #     conda:
-#         'envs/blast.yml'
+#         envs / 'blast.yml'
 #     threads:
 #         maxthreads
 #     log:
@@ -379,36 +372,36 @@ rule plot_operons:
 #     output:
 #         blast_results / 'blast_fetched_names.tsv'
 #     conda:
-#         'envs/pythonic.yml'
+#         envs /'pythonic.yml'
 #     log:
 #         stderr = logs / "fetch_hypo.stderr"
 #     params:
 #         email = email,
-#         script_path = scripts / "fetch_hypos_names.py"
+#         script = scripts / "fetch_hypos_names.py"
 #     threads:
 #         1
 #     shell:
 #         """
-#         ( python {params.script_path} {input} {params.email} {output}
+#         ( python {params.script} {input} {params.email} {output}
 #         ) 2> {log.stderr}
 #         """
 
 # rule add_hypo_to_gff:
 #     input:
-#         gff = the_results / 'operons_annotation.gff3',
+#         gff = results / 'operons_annotation.gff3',
 #         tsv = blast_results / 'blast_fetched_names.tsv'
 #     output:
-#         gff = the_results / 'operons_annotation_with_blast.gff'
+#         gff = results / 'operons_annotation_with_blast.gff'
 #     conda:
-#         'envs/pythonic.yml'
+#         envs / 'pythonic.yml'
 #     threads:
 #         1
 #     params:
-#         script_path = scripts / 'hypothetical_proteins_fix.py'
+#         script = scripts / 'hypothetical_proteins_fix.py'
 #     log:
 #         stderr = logs / "add_hypo.stderr"
 #     shell:
 #         """
-#         ( python {params.script_path} -g {input.gff} -h {input.tsv} -o {output}
+#         ( python {params.script} -g {input.gff} -h {input.tsv} -o {output}
 #         ) 2> {log.stderr}
 #         """

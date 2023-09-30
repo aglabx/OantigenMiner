@@ -1,0 +1,29 @@
+# DEFINED BY USER
+genome: 'example/E.coli_genome.fna'
+output: 'example_output'
+email: 'notify@example.com'
+gff: 'bakta_output/ecoli_hs.gff3'
+bakta_db: "db-light"
+
+maxthreads: 10
+hmm_threshold: 3e-20
+kegg_minimal: 3
+
+# FOLDERS
+results_dir: 'results'
+
+bakta_output: "bakta_output"
+isescan_output: "isescan_output"
+operonmapper_output: "operonmapper_output"
+hmmer_output: 'hmmer_output'
+blastp_output: 'blastp_output'
+
+# FILES
+prodigal_tf: "prodigal.trn"
+
+
+# PATHS TO WORKFLOW PARTS
+envs: 'envs'  # path from workflow folder
+scripts: 'scripts'
+hmms: 'hmms'
+logs: 'logs'
